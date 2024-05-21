@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorar Mapa</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.8.2/mapbox-gl.css' rel='stylesheet' />
+</head>
+
+<body>
+    <div class="relative-layout">
+    
+        <div id="map" class="map"></div>
+
+        
+        <div id="layout_input" class="layout-input">
+        
+            <div id="alert" class="alert" style="display:none;"></div>
+
+            <input id="edit_text_place_name" type="text" placeholder="Nombre del lugar">
+            <input id="edit_text_description" type="text" placeholder="Descripción">
+            <select id="edit_text_category" placeholder="Categoría">
+                <option value="Categoría">Selecciona Categoría</option>
+                <option value="Restaurante">Restaurante</option>
+                <option value="Bar">Bar</option>
+                <option value="Café">Café</option>
+                <option value="Parque">Parque</option>
+                <option value="Museo">Museo</option>
+                <option value="Playa">Playa</option>
+                <option value="Tienda">Tienda</option>
+                <option value="Gimnasio">Gimnasio</option>
+                <option value="Hotel">Hotel</option>
+                <option value="Teatro">Teatro</option>
+            </select>
+            <button id="button_save_marker">Guardar</button>
+        </div>
+
+
+        <div id="chatbot-container">
+            <div id="chatbot-messages"></div>
+            <input id="chatbot-input" type="text"
+                placeholder="restaurante, bar, café, parque, museo, playa, tienda, gimnasio, hotel, teatro...">
+            <button id="chatbot-send">Ver Marcadores</button>
+        </div>
+    </div>
+
+
+
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.8.2/mapbox-gl.js'></script>
+    <script>
+
+        let customMarkers = [];
+    
+        let map;
+
+        function initMap() {
+            mapboxgl.accessToken = 'pk.eyJ1IjoicmFhYWFhYWFubHUzIiwiYSI6ImNsd2FycnNhOTBldmcyanFtcTZ2OGkwZGYifQ.QfQ11Znke9iRmAvhYTDvEQ';
+
+        
+            map = new mapboxgl.Map({
+                container: 'map', 
+                style: 'mapbox://styles/mapbox/satellite-v9',
+                center: [-3.8246, 40.3456], 
+                zoom: 13 
+            });
+
+        
+            map.addControl(new mapboxgl.GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true
+                },
+                trackUserLocation: true
+            }));
+
+            
+            map.on('click', (event) => {
+                addMarker(event.lngLat);
+            });
+
+        
+            document.getElementById("button_save_marker").addEventListener("click", () => {
+                addMarker(map.getCenter()); 
+            });
+
+        
+            setupChatbot();
+        }
+
+        
+        function setupChatbot() {
+            const chatbotInput = document.getElementById("chatbot-input");
+
+        
+            function clearInput() {
+                document.getElementById("chatbot-input").value = "";
+            }
+
+        
+            function handleChatbotQuery(query) {
+                clearInput();
+                let categoryFilter = "";
+
+                
+                if (query.includes("restaurante")) {
+                    categoryFilter = "Restaurante";
+                } else if (query.includes("bar")) {
+                    categoryFilter = "Bar";
+                } else if (query.includes("café")) {
+                    categoryFilter = "Café";
+                } else if (query.includes("parque")) {
+                    categoryFilter = "Parque";
+                } else if (query.includes("museo")) {
+                    categoryFilter = "Museo";
+                } else if (query.includes("playa")) {
+                    categoryFilter = "Playa";
+                } else if (query.includes("tienda")) {
+                    categoryFilter = "Tienda";
+                } else if (query.includes("gimnasio")) {
+                    categoryFilter = "Gimnasio";
+                } else if (query.includes("hotel")) {
+                    categoryFilter = "Hotel";
+                } else if (query.includes("teatro")) {
+                    categoryFilter = "Teatro";
+                } else {
+                    appendMessage("Por favor, ingresa una categoría para filtrar los marcadores.", "chatbot");
+                    return;
+                }
+
+        
+                showMarkersByCategory(categoryFilter);
+            }
+
+        
+            document.getElementById("chatbot-send").addEventListener("click", () => {
+                const inputText = chatbotInput.value.trim().toLowerCase();
+                if (inputText === "") {
+                    appendMessage("Por favor, ingresa una categoría para filtrar los marcadores.", "chatbot");
+                } else {
+                    handleChatbotQuery(inputText);
+                }
+            });
+        }
+
+        function addMarker(location) {
+            const name = document.getElementById("edit_text_place_name").value.trim();
+            const description = document.getElementById("edit_text_description").value.trim();
+            const category = document.getElementById("edit_text_category").value;
+
+            
+            if (name === "" || description === "" || category === "Categoría") {
+        
+                showAlert("Por favor, completa todos los campos para guardar el marcador.");
+                return;
+            }
+
+            const marker = new mapboxgl.Marker()
+                .setLngLat(location)
+                .setPopup(new mapboxgl.Popup().setHTML(`<h3>${name}</h3><p>${description}</p><p><strong>Categoría:</strong> ${category}</p>`))
+                .addTo(map);
+
+            customMarkers.push({
+                marker: marker,
+                name: name,
+                description: description,
+                location: location,
+                category: category
+            });
+
+        
+            document.getElementById("edit_text_place_name").value = "";
+            document.getElementById("edit_text_description").value = "";
+            document.getElementById("edit_text_category").selectedIndex = 0; 
+
+
+            hideAlert();
+        }
+
+        function showMarkersByCategory(categoryFilter) {
+            let message = "";
+            customMarkers.forEach(item => {
+                if (item.category.toLowerCase() === categoryFilter.toLowerCase()) {
+                    item.marker.addTo(map); 
+                    message += `${item.name}\n`;
+                } else {
+                    item.marker.remove();
+                }
+            });
+
+            if (message === "") {
+                message = `No se encontraron lugares de categoría ${categoryFilter}.`;
+            }
+            appendMessage(message, "chatbot");
+        }
+
+
+
+        function appendMessage(message, sender) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message");
+            messageElement.classList.add(sender);
+            messageElement.textContent = message;
+            document.getElementById("chatbot-messages").appendChild(messageElement);
+            document.getElementById("chatbot-messages").scrollTop = document.getElementById("chatbot-messages").scrollHeight;
+        }
+
+        function showAlert(message) {
+            const alertElement = document.getElementById("alert");
+            alertElement.style.display = "block";
+            alertElement.textContent = message;
+        }
+
+        function hideAlert() {
+            const alertElement = document.getElementById("alert");
+            alertElement.style.display = "none";
+            alertElement.textContent = "";
+        }
+
+
+        window.onload = initMap;
+    </script>
+</body>
+
+</html>

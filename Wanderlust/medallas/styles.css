@@ -1,0 +1,76 @@
+/* Estilos generales */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(80deg, #002fff 30%, blue 40%, #000d31 100%);
+    padding: 16px;
+    margin: 0;
+}
+
+.scroll-view {
+    max-width: 600px;
+    margin: 0 auto;
+    background: linear-gradient(80deg, #000d31 30%, rgb(0, 0, 83) 40%, #002fff 100%);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 100px;
+    border: 15px solid black;
+    position: relative;
+}
+
+.home-logo {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+}
+
+.home-logo img {
+    width: 32px;
+    height: 32px;
+}
+
+.linear-layout {
+    padding: 16px;
+}
+
+.header {
+    font-size: 24px;
+    font-weight: bold;
+    color: #FFFFFF;
+    margin-bottom: 36px;
+}
+
+.achievement {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.icon {
+    width: 48px;
+    height: 48px;
+    margin-right: 16px;
+}
+
+.achievement-text {
+    font-size: 18px;
+    color: #ffffff;
+}
+
+.separator {
+    border: none;
+    border-top: 1px solid #888888;
+    margin: 16px 0;
+}
+
+.home-logo {
+    font-size: 24px;
+    margin-right: 30px;
+    color: white;
+    margin-top: 20px;
+    transition: .2s ease;
+}
+
+.home-logo:hover {
+    transform: scale(1.1);
+    color: #001641;
+}
